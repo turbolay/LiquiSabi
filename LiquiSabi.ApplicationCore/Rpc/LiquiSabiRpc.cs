@@ -16,7 +16,7 @@ public class LiquiSabiRpc : IJsonRpcService
     {
         var rounds = GetRounds(since, until, coordinatorEndpoint).ToList();
         return new CoinjoinStore.SavedRound(
-            CoordinatorEndpoint: string.Join(';', rounds.Select(x => x.CoordinatorEndpoint)),
+            CoordinatorEndpoint: string.Join(';', rounds.Select(x => x.CoordinatorEndpoint).Distinct()),
             EstimatedCoordinatorEarningsSats: rounds.Sum(x => x.EstimatedCoordinatorEarningsSats),
             RoundId: rounds.Count.ToString(),
             IsBlame: false,
