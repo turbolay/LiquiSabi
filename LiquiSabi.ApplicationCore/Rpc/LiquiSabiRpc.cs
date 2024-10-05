@@ -36,7 +36,7 @@ public class LiquiSabiRpc : IJsonRpcService
             OutputCount: (int)rounds.Average(x => x.OutputCount),
             TotalOutputAmount: (long)rounds.Average(x => x.TotalOutputAmount),
             ChangeOutputsAmountRatio: Math.Round(rounds.Average(x => x.ChangeOutputsAmountRatio), 2),
-            AverageStandardOutputsAnonSet: Math.Round(rounds.Average(x => x.AverageStandardOutputsAnonSet), 2),
+            AverageStandardOutputsAnonSet: Math.Round(rounds.Average(x => x.AverageStandardOutputsAnonSet), 5),
             TotalLeftovers: (int)rounds.Average(x => x.TotalLeftovers));
     }
 }
