@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using LiquiSabi.ApplicationCore.Utils.Logging;
 
@@ -137,20 +138,20 @@ namespace LiquiSabi.ApplicationCore.Data
             command.ExecuteNonQuery();
         }
 
-        public IEnumerable<CoinjoinStore.SavedRound> Get(DateTimeOffset? since = null, DateTimeOffset? until = null, string? coordinatorEndpoint = null)
+        public IEnumerable<CoinjoinStore.SavedRound> Get(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoints = null)
         {
             using SqliteCommand command = _connection.CreateCommand();
             command.CommandText = @"
                 SELECT * FROM coinjoin_rounds
                 WHERE ($Since IS NULL OR RoundEndTime >= $Since)
                 AND ($Until IS NULL OR RoundEndTime <= $Until)
-                AND ($CoordinatorEndpoint IS NULL OR CoordinatorEndpoint = $CoordinatorEndpoint)
+                AND ($CoordinatorEndpoints IS NULL OR CoordinatorEndpoint IN (SELECT value FROM json_each($CoordinatorEndpoints)))
                 ORDER BY RoundEndTime
             ";
 
             command.Parameters.AddWithValue("$Since", since?.ToUnixTimeSeconds() ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("$Until", until?.ToUnixTimeSeconds() ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("$CoordinatorEndpoint", coordinatorEndpoint ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("$CoordinatorEndpoints", coordinatorEndpoints != null ? JsonSerializer.Serialize(coordinatorEndpoints) : (object)DBNull.Value);
 
             using SqliteDataReader reader = command.ExecuteReader();
 

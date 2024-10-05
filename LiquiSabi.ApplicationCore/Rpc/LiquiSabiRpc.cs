@@ -6,13 +6,13 @@ namespace LiquiSabi.ApplicationCore.Rpc;
 public class LiquiSabiRpc : IJsonRpcService
 {
     [JsonRpcMethod("rounds")]
-    public IEnumerable<CoinjoinStore.SavedRound> GetRounds(DateTimeOffset? since = null, DateTimeOffset? until = null, string? coordinatorEndpoint = null)
+    public IEnumerable<CoinjoinStore.SavedRound> GetRounds(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
     {
         return CoinjoinStore.GetSavedRounds(since, until, coordinatorEndpoint);
     }
     
     [JsonRpcMethod("average")]
-    public CoinjoinStore.SavedRound GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, string? coordinatorEndpoint = null)
+    public CoinjoinStore.SavedRound GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
     {
         var rounds = GetRounds(since, until, coordinatorEndpoint).ToList();
         return new CoinjoinStore.SavedRound(

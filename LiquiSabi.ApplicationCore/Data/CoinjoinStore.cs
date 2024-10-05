@@ -107,7 +107,7 @@ public static class CoinjoinStore
 
     public static IEnumerable<SavedRound> GetSavedRounds(DateTimeOffset? since = null,
         DateTimeOffset? until = null,
-        string? coordinatorEndpoint = null)
+        IEnumerable<string>? coordinatorEndpoint = null)
     {
         lock (Lock)
         {
