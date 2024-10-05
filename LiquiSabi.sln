@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiquiSabi", "LiquiSabi\LiquiSabi.csproj", "{E0FC6922-31BD-4360-9E68-87B74F683AFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiquiSabi.ApplicationCore", "LiquiSabi.ApplicationCore\LiquiSabi.ApplicationCore.csproj", "{D807E19E-5C04-44D2-B840-3205507F272A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E0FC6922-31BD-4360-9E68-87B74F683AFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0FC6922-31BD-4360-9E68-87B74F683AFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0FC6922-31BD-4360-9E68-87B74F683AFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0FC6922-31BD-4360-9E68-87B74F683AFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D807E19E-5C04-44D2-B840-3205507F272A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D807E19E-5C04-44D2-B840-3205507F272A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D807E19E-5C04-44D2-B840-3205507F272A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D807E19E-5C04-44D2-B840-3205507F272A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
