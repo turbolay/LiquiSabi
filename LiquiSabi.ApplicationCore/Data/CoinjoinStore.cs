@@ -62,12 +62,17 @@ public static class CoinjoinStore
         var totalMiningFee = totalInputAmount - totalOutputAmount;
         var virtualSize = transaction.GetVirtualSize();
         var finalMiningFeeRate = Math.Round(totalMiningFee / (decimal) virtualSize, 2);
-        var totalLeftovers = totalMiningFee - (long)(parametersMiningFeeRate * virtualSize);
-        var estimatedCoordinatorEarningsSats = Math.Max(0, (long)(
-            totalLeftovers // Coordinator gets the leftover
-            + (long)(coordinationFeeRate * 100000000 * freshInputsEstimateBtc) // And the coordination fee if not 0
-            - parametersMiningFeeRate * ((decimal)(Constants.P2trOutputVirtualSize + Constants.P2wpkhOutputVirtualSize) / 2) // He has to pay for the output at starting mining fee rate
-            - 1 * ((decimal)(Constants.P2trInputVirtualSize + Constants.P2wpkhInputVirtualSize) / 2))); // and for the input at 1 s/vb minimum when spending it
+        var coordinatorOutput = ((OutputAdded)signingState.Events.Last()).Output.Value!.Satoshi;
+        if (BlockchainAnalyzer.StdDenoms.Contains(coordinatorOutput))
+        {
+            // Ignore coordinator output if it's a standard denom.
+            // Better to have false negatives sometimes than false positives more often.
+            coordinatorOutput = 0;
+        }
+        var coordinationFee = (long)(coordinationFeeRate * 100000000 * freshInputsEstimateBtc);
+        var totalLeftovers = coordinatorOutput == 0 ? 0 : coordinatorOutput - coordinationFee;
+
+        var estimatedCoordinatorEarningsSats = Math.Max(0, totalLeftovers + coordinationFee);
 
         var savedRound = new SavedRound(
             coordinatorEndpoint,
