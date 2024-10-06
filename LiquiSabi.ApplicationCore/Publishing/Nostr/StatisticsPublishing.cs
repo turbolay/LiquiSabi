@@ -2,6 +2,7 @@ using System.Net.WebSockets;
 using NNostr.Client;
 using NNostr.Client.Protocols;
 using LiquiSabi.ApplicationCore.Data;
+using LiquiSabi.ApplicationCore.Utils.Logging;
 
 namespace LiquiSabi.ApplicationCore.Publishing.Nostr;
 
@@ -26,34 +27,8 @@ public static class StatisticsPublishing
         "wss://relay.snort.social/",
         "wss://relay.nostr.band"
     ];
-
-    public static async Task<string?> PublishToNostrWithRetries(List<Analyzer.Analysis> analyses, List<string> freeCoordinatorsWithoutSuccesses,
-        CancellationToken cancellationToken)
-    {
-        int maxRetries = 3;
-        for (int i = 0; i < maxRetries; i++)
-        {
-            try
-            {
-                return await PublishToNostr(analyses, freeCoordinatorsWithoutSuccesses, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                if (i == maxRetries - 1)
-                {
-                    Console.WriteLine($"Final attempt failed: {ex.Message}. Swallowing exception.");
-                }
-                else
-                {
-                    Console.WriteLine($"Attempt {i + 1} failed: {ex.Message}. Retrying...");
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static async Task<string?> PublishToNostr(List<Analyzer.Analysis> analyses,  List<string> freeCoordinatorsWithoutSuccesses, CancellationToken cancellationToken)
+    
+    public static async Task<string?> PublishToNostr(List<Analyzer.Analysis> analyses,  List<string> freeCoordinatorsWithoutSuccesses, CancellationToken cancellationToken)
     {
         if (analyses.Count == 0)
         {
@@ -112,6 +87,7 @@ public static class StatisticsPublishing
             throw new Exception("Didn't manage to publish the nostr event to a single relay");
         }
         
+        Logger.LogInfo($"Published to {results.Count(x => x)} relays");
         return newEvent.Id;
     }
 }

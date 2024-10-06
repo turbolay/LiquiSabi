@@ -64,8 +64,8 @@ public class Analyzer : BackgroundService, IAnalyzer
                 return;
             }
 
-            var allCoordinatorsWithFinishedRounds = RoundDataReaderService.GetRounds();
-            RoundDataReaderService.RemoveRounds(allCoordinatorsWithFinishedRounds.Values);
+            var allCoordinatorsWithFinishedRounds = RoundDataReaderService.GetRounds().ToList();
+            RoundDataReaderService.RemoveRounds(allCoordinatorsWithFinishedRounds.Select(x => x.Value));
 
             var freeCoordinatorsWithoutSuccesses = allCoordinatorsWithFinishedRounds
                 .GroupBy(x => x.Value.Coordinator.Endpoint)
@@ -76,7 +76,7 @@ public class Analyzer : BackgroundService, IAnalyzer
 
             try
             {
-                await StatisticsPublishing.PublishToNostrWithRetries(toPublishCoordinators, freeCoordinatorsWithoutSuccesses, cancellationToken);
+                await StatisticsPublishing.PublishToNostr(toPublishCoordinators, freeCoordinatorsWithoutSuccesses, cancellationToken);
             }
             catch (Exception ex)
             {
