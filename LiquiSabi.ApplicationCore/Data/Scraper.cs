@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices.JavaScript;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using LiquiSabi.ApplicationCore.Publishing.Nostr;
@@ -18,6 +19,8 @@ public class Scraper(CoordinatorDiscovery coordinatorDiscovery)
     private CoordinatorDiscovery CoordinatorDiscovery { get; } = coordinatorDiscovery;
 
     private Dictionary<string, WabiSabiHttpApiClient> ApiClientPerCoordinator { get; } = new();
+    
+    private Dictionary<string, DateTimeOffset> FaultyCoordinators { get; } = new ();
 
     protected override async Task ActionAsync(CancellationToken token)
     {
@@ -58,10 +61,21 @@ public class Scraper(CoordinatorDiscovery coordinatorDiscovery)
                         status, humanMonitor);
 
                     await ToBeProcessedData.Writer.WriteAsync(publicStatus, token);
+
+
+                    if (FaultyCoordinators.TryGetValue(apiClientAndCoordinator.Coordinator.Endpoint, out var since))
+                    {
+                        Logger.LogInfo($"Working again: {apiClientAndCoordinator.Coordinator.Endpoint} after {(DateTimeOffset.UtcNow - since).Seconds} s");
+                        FaultyCoordinators.Remove(apiClientAndCoordinator.Coordinator.Endpoint);
+                    }
                 }
                 catch (Exception)
                 {
-                    Logger.LogWarning($"Coordinator: {apiClientAndCoordinator.Coordinator.Endpoint}");
+                    if (!FaultyCoordinators.ContainsKey(apiClientAndCoordinator.Coordinator.Endpoint))
+                    {
+                        Logger.LogWarning($"Coordinator down: {apiClientAndCoordinator.Coordinator.Endpoint}");
+                        FaultyCoordinators.Add(apiClientAndCoordinator.Coordinator.Endpoint, DateTimeOffset.UtcNow);
+                    }
                 }
             }, linkedCts.Token);
             tasks.Add(task);
