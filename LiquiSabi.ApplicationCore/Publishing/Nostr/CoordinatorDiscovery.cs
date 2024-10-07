@@ -8,13 +8,25 @@ public class CoordinatorDiscovery : BackgroundService
 {
     private const string NetworkTypeDetected = "Mainnet";
 
-    private List<string> Relays { get; } =
+    private static List<string> Relays { get; } =
     [
         "wss://relay.primal.net",
         "wss://relay.damus.io",
+        "wss://relay.mostr.pub/",
+        "wss://nostr.fmt.wiz.biz",
+        "wss://nostr.wine/",
+        "wss://nos.lol",
+        "wss://nostr.land/",
+        "wss://offchain.pub/",
+        "wss://nostr.oxtr.dev/",
+        "wss://eden.nostr.land/",
+        "wss://nostr.oxtr.dev",
+        "wss://relay.bitcoinpark.com",
+        "wss://soloco.nl",
+        "wss://relay.nostr.bg/",
+        "wss://relay.snort.social/",
         "wss://relay.nostr.band",
-        "wss://nostr.wine",
-        "wss://nostr-pub.wellorder.net"
+        "wss://relay.noderunners.network"
     ];
 
     private const int Kind = 15750;
@@ -31,6 +43,8 @@ public class CoordinatorDiscovery : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         Coordinators.Add(new Coordinator("","https://api.opencoordinator.org/", "", DateTimeOffset.UtcNow));
+        Coordinators.Add(new Coordinator("","https://coinjoin.nl/", "", DateTimeOffset.UtcNow));
+        
         Client = new CompositeNostrClient(Relays
             .Select(s => Uri.TryCreate(s, UriKind.Absolute, out var uri) ? uri : null)
             .Where(u => u is not null).ToArray()!);
@@ -44,7 +58,8 @@ public class CoordinatorDiscovery : BackgroundService
             }
         };
 
-        await Client.ConnectAndWaitUntilConnected(cancellationToken);
+        var cts = new CancellationTokenSource(20000);
+        await Client.ConnectAndWaitUntilConnected(cts.Token, cancellationToken);
 
         await foreach (var evt in Client.SubscribeForEvents([
                            new NostrSubscriptionFilter
@@ -75,7 +90,6 @@ public class CoordinatorDiscovery : BackgroundService
                 {
                     continue;
                 }
-
                 if (endpoint.Contains("kruw") && !endpoint.Contains("coinjoin"))
                 {
                     continue;
