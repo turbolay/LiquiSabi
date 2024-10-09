@@ -62,22 +62,20 @@ public static class CoinjoinStore
         var totalMiningFee = totalInputAmount - totalOutputAmount;
         var virtualSize = transaction.GetVirtualSize();
         var finalMiningFeeRate = Math.Round(totalMiningFee / (decimal) virtualSize, 2);
+        
         var coordinatorOutput = ((OutputAdded)signingState.Events.Last()).Output.Value!.Satoshi;
-        if (BlockchainAnalyzer.StdDenoms.Contains(coordinatorOutput))
+        var leftoverThreshold = signingState.Parameters.AllowedInputAmounts.Min.Satoshi * (inputCount / 10.0m);
+        var estCoordinationFee = (long)(coordinationFeeRate * 100000000 * freshInputsEstimateBtc);
+        var estLeftovers = Math.Max(0, coordinatorOutput - estCoordinationFee);
+        if (BlockchainAnalyzer.StdDenoms.Contains(coordinatorOutput) || estLeftovers > leftoverThreshold)
         {
-            // Ignore coordinator output if it's a standard denom.
+            // Ignore coordinator output if it's a standard denom or if the leftovers would be higher than possible.
             // Better to have false negatives sometimes than false positives more often.
             coordinatorOutput = 0;
+            estLeftovers = 0;
         }
-        var coordinationFee = (long)(coordinationFeeRate * 100000000 * freshInputsEstimateBtc);
-        var totalLeftovers = coordinatorOutput == 0 ? 0 : coordinatorOutput - coordinationFee;
 
-        if (totalLeftovers > signingState.Parameters.AllowedInputAmounts.Min.Satoshi * (inputCount / 10.0m))
-        {
-            totalLeftovers = 0;
-        }
-        
-        var estimatedCoordinatorEarningsSats = Math.Max(0, totalLeftovers + coordinationFee);
+        var estimatedCoordinatorEarningsSats = coordinatorOutput;
 
         var savedRound = new SavedRound(
             coordinatorEndpoint,
@@ -101,7 +99,7 @@ public static class CoinjoinStore
             totalOutputAmount,
             changeOutputsAmountRatio,
             averageStandardOutputsAnonSet,
-            totalLeftovers);
+            estLeftovers);
 
         lock (Lock)
         {
