@@ -72,6 +72,11 @@ public static class CoinjoinStore
         var coordinationFee = (long)(coordinationFeeRate * 100000000 * freshInputsEstimateBtc);
         var totalLeftovers = coordinatorOutput == 0 ? 0 : coordinatorOutput - coordinationFee;
 
+        if (totalLeftovers > signingState.Parameters.AllowedInputAmounts.Min.Satoshi * (inputCount / 10.0m))
+        {
+            totalLeftovers = 0;
+        }
+        
         var estimatedCoordinatorEarningsSats = Math.Max(0, totalLeftovers + coordinationFee);
 
         var savedRound = new SavedRound(
