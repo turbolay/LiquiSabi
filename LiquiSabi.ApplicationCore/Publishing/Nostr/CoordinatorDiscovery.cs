@@ -1,4 +1,5 @@
 using System.Net.WebSockets;
+using LiquiSabi.ApplicationCore.Utils.Logging;
 using Microsoft.Extensions.Hosting;
 using NNostr.Client;
 
@@ -43,7 +44,9 @@ public class CoordinatorDiscovery : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         Coordinators.Add(new Coordinator("","https://api.opencoordinator.org/", "", DateTimeOffset.UtcNow));
+        Logger.LogInfo("Listening to https://api.opencoordinator.org/");
         Coordinators.Add(new Coordinator("","https://coinjoin.nl/", "", DateTimeOffset.UtcNow));
+        Logger.LogInfo("Listening to https://coinjoin.nl/");
         
         Client = new CompositeNostrClient(Relays
             .Select(s => Uri.TryCreate(s, UriKind.Absolute, out var uri) ? uri : null)
@@ -114,6 +117,8 @@ public class CoordinatorDiscovery : BackgroundService
                         endpoint,
                         evt.Content ?? "",
                         evt.CreatedAt ?? DateTimeOffset.UtcNow));
+                    
+                    Logger.LogInfo($"Listening to {endpoint}");
                 }
             }
         }
