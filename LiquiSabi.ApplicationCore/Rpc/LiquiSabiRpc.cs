@@ -30,7 +30,7 @@ public class LiquiSabiRpc : IJsonRpcService
             VirtualSize: (int)rounds.Average(x => x.VirtualSize),
             TotalMiningFee: (long)rounds.Average(x => x.TotalMiningFee),
             InputCount: (int)rounds.Average(x => x.InputCount),
-            TotalInputAmount: (int)rounds.Average(x => x.TotalInputAmount),
+            TotalInputAmount: (long)rounds.Average(x => x.TotalInputAmount),
             FreshInputsEstimateBtc: Math.Round(rounds.Average(x => x.FreshInputsEstimateBtc), 8),
             AverageStandardInputsAnonSet: Math.Round(rounds.Average(x => x.AverageStandardInputsAnonSet), 2),
             OutputCount: (int)rounds.Average(x => x.OutputCount),
