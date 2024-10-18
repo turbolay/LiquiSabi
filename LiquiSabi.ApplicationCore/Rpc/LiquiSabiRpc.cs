@@ -53,9 +53,13 @@ public class LiquiSabiRpc : IJsonRpcService
         using (await _lock.LockAsync())
         {
             var now = DateTime.UtcNow;
-            if ((now - _lastRequestDonation) < TimeSpan.FromSeconds(30))
+            var timeSinceLastRequest = now - _lastRequestDonation;
+            var minimumWaitTime = TimeSpan.FromSeconds(30);
+
+            if (timeSinceLastRequest < minimumWaitTime)
             {
-                await Task.Delay((now - _lastRequestDonation));
+                var delayTime = minimumWaitTime - timeSinceLastRequest;
+                await Task.Delay(delayTime);
             }
 
             _lastRequestDonation = DateTime.UtcNow;
