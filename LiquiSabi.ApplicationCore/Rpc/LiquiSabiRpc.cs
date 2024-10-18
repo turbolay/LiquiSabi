@@ -1,5 +1,6 @@
 using System.Text;
 using LiquiSabi.ApplicationCore.Data;
+using LiquiSabi.ApplicationCore.Utils.Nito.AsyncEx;
 using LiquiSabi.ApplicationCore.Utils.Rpc;
 using LiquiSabi.ApplicationCore.Utils.Tor.Http.Extensions;
 using Newtonsoft.Json;
@@ -44,9 +45,22 @@ public class LiquiSabiRpc : IJsonRpcService
             TotalLeftovers: (int)rounds.Average(x => x.TotalLeftovers));
     }
 
+    private DateTime _lastRequestDonation = DateTime.MinValue;
+    private AsyncLock _lock = new();
     [JsonRpcMethod("donation-address")]
-    public static async Task<string?> GetDonationAddress()
+    public async Task<string?> GetDonationAddress()
     {
+        using (await _lock.LockAsync())
+        {
+            var now = DateTime.UtcNow;
+            if ((now - _lastRequestDonation) < TimeSpan.FromSeconds(30))
+            {
+                await Task.Delay((now - _lastRequestDonation));
+            }
+
+            _lastRequestDonation = DateTime.UtcNow;
+        }
+
         HttpClient client = new HttpClient();
         client.BaseAddress = new Uri("http://127.0.0.1:37128/LiquiSabi");
     
