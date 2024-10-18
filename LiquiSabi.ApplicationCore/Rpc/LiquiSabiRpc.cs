@@ -1,5 +1,9 @@
+using System.Text;
 using LiquiSabi.ApplicationCore.Data;
 using LiquiSabi.ApplicationCore.Utils.Rpc;
+using LiquiSabi.ApplicationCore.Utils.Tor.Http.Extensions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace LiquiSabi.ApplicationCore.Rpc;
 
@@ -39,4 +43,35 @@ public class LiquiSabiRpc : IJsonRpcService
             AverageStandardOutputsAnonSet: Math.Round(rounds.Average(x => x.AverageStandardOutputsAnonSet), 5),
             TotalLeftovers: (int)rounds.Average(x => x.TotalLeftovers));
     }
+
+    [JsonRpcMethod("donation-address")]
+    public static async Task<string?> GetDonationAddress()
+    {
+        HttpClient client = new HttpClient();
+        client.BaseAddress = new Uri("http://127.0.0.1:37128/LiquiSabi");
+    
+        var requestBody = new
+        {
+            jsonrpc = "2.0",
+            id = "1",
+            method = "getnewaddress",
+            @params = new object[] { "LiquiSabi", true }
+        };
+    
+        var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+        HttpResponseMessage result = await client.PostAsync("", content);
+
+        if (!result.IsSuccessStatusCode)
+        {
+            return null;
+        }
+        
+        var response = await result.Content.ReadAsStringAsync();
+        var json = JObject.Parse(response);
+
+        return !json.TryGetValue("result", out var resultJson) ? 
+            null : 
+            resultJson["address"]?.ToString();
+    }
+    
 }
