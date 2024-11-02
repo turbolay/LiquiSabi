@@ -143,7 +143,7 @@ public static class CoinjoinStore
         DateTimeOffset RoundEndTime,
         string TxId,
         decimal FinalMiningFeeRate,
-        int VirtualSize,
+        long VirtualSize,
         long TotalMiningFee,
         int InputCount,
         long TotalInputAmount,

@@ -31,7 +31,7 @@ public class LiquiSabiRpc : IJsonRpcService
             var dayStart = currentDate;
             var dayEnd = currentDate.AddDays(1);
         
-            var summary = GetSummary(dayStart, dayEnd, coordinatorEndpoint);
+            var summary = GetSummary(dayStart, dayEnd, coordinatorEndpoint, true);
             result.Add(new GraphEntry(
                 currentDate.ToString("dd/MM"),
                 summary
@@ -44,7 +44,7 @@ public class LiquiSabiRpc : IJsonRpcService
     }
     
     [JsonRpcMethod("average")]
-    public CoinjoinStore.SavedRound? GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
+    public CoinjoinStore.SavedRound? GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null, bool sumWhenRelevant = false)
     {
         var rounds = GetRounds(since, until, coordinatorEndpoint).ToList();
         if (rounds.Count == 0)
@@ -53,7 +53,7 @@ public class LiquiSabiRpc : IJsonRpcService
         }
         return new CoinjoinStore.SavedRound(
             CoordinatorEndpoint: string.Join(';', rounds.Select(x => x.CoordinatorEndpoint).Distinct()),
-            EstimatedCoordinatorEarningsSats: (long)rounds.Average(x => x.EstimatedCoordinatorEarningsSats),
+            EstimatedCoordinatorEarningsSats: sumWhenRelevant ? (long)rounds.Sum(x => x.EstimatedCoordinatorEarningsSats) : (long)rounds.Average(x => x.EstimatedCoordinatorEarningsSats),
             RoundId: rounds.Count.ToString(),
             IsBlame: false,
             CoordinationFeeRate: Math.Round(rounds.Average(x => x.CoordinationFeeRate), 4),
@@ -63,17 +63,17 @@ public class LiquiSabiRpc : IJsonRpcService
             RoundEndTime: rounds.Max(x => x.RoundEndTime),
             TxId: rounds.Count.ToString(),
             FinalMiningFeeRate: Math.Round(rounds.Average(x => x.FinalMiningFeeRate), 2),
-            VirtualSize: (int)rounds.Average(x => x.VirtualSize),
-            TotalMiningFee: (long)rounds.Average(x => x.TotalMiningFee),
-            InputCount: (int)rounds.Average(x => x.InputCount),
-            TotalInputAmount: (long)rounds.Average(x => x.TotalInputAmount),
-            FreshInputsEstimateBtc: Math.Round(rounds.Average(x => x.FreshInputsEstimateBtc), 8),
+            VirtualSize: sumWhenRelevant ? (long)rounds.Sum(x => x.VirtualSize) : (long)rounds.Average(x => x.VirtualSize),
+            TotalMiningFee: sumWhenRelevant ? (long)rounds.Sum(x => x.TotalMiningFee) : (long)rounds.Average(x => x.TotalMiningFee),
+            InputCount: sumWhenRelevant ? (int)rounds.Sum(x => x.InputCount) : (int)rounds.Average(x => x.InputCount),
+            TotalInputAmount: sumWhenRelevant ? (long)rounds.Sum(x => x.TotalInputAmount) : (long)rounds.Average(x => x.TotalInputAmount),
+            FreshInputsEstimateBtc: sumWhenRelevant ? Math.Round(rounds.Sum(x => x.FreshInputsEstimateBtc), 8) : Math.Round(rounds.Average(x => x.FreshInputsEstimateBtc), 8),
             AverageStandardInputsAnonSet: Math.Round(rounds.Average(x => x.AverageStandardInputsAnonSet), 2),
-            OutputCount: (int)rounds.Average(x => x.OutputCount),
-            TotalOutputAmount: (long)rounds.Average(x => x.TotalOutputAmount),
+            OutputCount: sumWhenRelevant ? (int)rounds.Sum(x => x.OutputCount) : (int)rounds.Average(x => x.OutputCount),
+            TotalOutputAmount: sumWhenRelevant ? (long)rounds.Sum(x => x.TotalOutputAmount) : (long)rounds.Average(x => x.TotalOutputAmount),
             ChangeOutputsAmountRatio: Math.Round(rounds.Average(x => x.ChangeOutputsAmountRatio), 2),
             AverageStandardOutputsAnonSet: Math.Round(rounds.Average(x => x.AverageStandardOutputsAnonSet), 5),
-            TotalLeftovers: (int)rounds.Average(x => x.TotalLeftovers));
+            TotalLeftovers: sumWhenRelevant ? (long)rounds.Average(x => x.TotalLeftovers) : (long)rounds.Average(x => x.TotalLeftovers));
     }
 
     private DateTime _lastRequestDonation = DateTime.MinValue;
