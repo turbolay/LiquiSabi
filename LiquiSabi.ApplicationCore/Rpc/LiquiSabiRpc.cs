@@ -2,7 +2,6 @@ using System.Text;
 using LiquiSabi.ApplicationCore.Data;
 using LiquiSabi.ApplicationCore.Utils.Nito.AsyncEx;
 using LiquiSabi.ApplicationCore.Utils.Rpc;
-using LiquiSabi.ApplicationCore.Utils.Tor.Http.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,6 +14,34 @@ public class LiquiSabiRpc : IJsonRpcService
     {
         return CoinjoinStore.GetSavedRounds(since, until, coordinatorEndpoint);
     }
+
+    public record GraphEntry(string Date, CoinjoinStore.SavedRound Averages );
+    
+    [JsonRpcMethod("graph")]
+    public List<GraphEntry> GetGraph(IEnumerable<string>? coordinatorEndpoint = null)
+    {
+        List<GraphEntry> result = [];
+        DateTimeOffset until = DateTimeOffset.UtcNow.Date - TimeSpan.FromDays(1);
+        DateTimeOffset since = until - TimeSpan.FromDays(30);
+
+        var currentDate = since;
+        
+        while (currentDate <= until)
+        {
+            var dayStart = currentDate;
+            var dayEnd = currentDate.AddDays(1);
+        
+            var summary = GetSummary(dayStart, dayEnd, coordinatorEndpoint);
+            result.Add(new GraphEntry(
+                currentDate.ToString("dd/MM"),
+                summary
+            ));
+        
+            currentDate = currentDate.AddDays(1);
+        }
+    
+        return result;
+    }
     
     [JsonRpcMethod("average")]
     public CoinjoinStore.SavedRound GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
@@ -22,7 +49,7 @@ public class LiquiSabiRpc : IJsonRpcService
         var rounds = GetRounds(since, until, coordinatorEndpoint).ToList();
         return new CoinjoinStore.SavedRound(
             CoordinatorEndpoint: string.Join(';', rounds.Select(x => x.CoordinatorEndpoint).Distinct()),
-            EstimatedCoordinatorEarningsSats: (int)rounds.Average(x => x.EstimatedCoordinatorEarningsSats),
+            EstimatedCoordinatorEarningsSats: (long)rounds.Average(x => x.EstimatedCoordinatorEarningsSats),
             RoundId: rounds.Count.ToString(),
             IsBlame: false,
             CoordinationFeeRate: Math.Round(rounds.Average(x => x.CoordinationFeeRate), 4),
