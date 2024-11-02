@@ -15,7 +15,7 @@ public class LiquiSabiRpc : IJsonRpcService
         return CoinjoinStore.GetSavedRounds(since, until, coordinatorEndpoint);
     }
 
-    public record GraphEntry(string Date, CoinjoinStore.SavedRound Averages );
+    public record GraphEntry(string Date, CoinjoinStore.SavedRound? Averages );
     
     [JsonRpcMethod("graph")]
     public List<GraphEntry> GetGraph(IEnumerable<string>? coordinatorEndpoint = null)
@@ -44,9 +44,13 @@ public class LiquiSabiRpc : IJsonRpcService
     }
     
     [JsonRpcMethod("average")]
-    public CoinjoinStore.SavedRound GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
+    public CoinjoinStore.SavedRound? GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
     {
         var rounds = GetRounds(since, until, coordinatorEndpoint).ToList();
+        if (rounds.Count == 0)
+        {
+            return null;
+        }
         return new CoinjoinStore.SavedRound(
             CoordinatorEndpoint: string.Join(';', rounds.Select(x => x.CoordinatorEndpoint).Distinct()),
             EstimatedCoordinatorEarningsSats: (long)rounds.Average(x => x.EstimatedCoordinatorEarningsSats),
