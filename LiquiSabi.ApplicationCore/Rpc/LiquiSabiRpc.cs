@@ -22,7 +22,10 @@ public class LiquiSabiRpc : IJsonRpcService
     {
         List<GraphEntry> result = [];
         DateTimeOffset until = DateTimeOffset.UtcNow.Date - TimeSpan.FromDays(1);
+        
+        DateTimeOffset minDate = new DateTimeOffset(2024, 10, 6, 0, 0, 0, TimeSpan.Zero);
         DateTimeOffset since = until - TimeSpan.FromDays(30);
+        since = since < minDate ? minDate : since;
 
         var currentDate = since;
         
