@@ -64,7 +64,7 @@ public static class CoinjoinStore
         var finalMiningFeeRate = Math.Round(totalMiningFee / (decimal) virtualSize, 2);
         
         var coordinatorOutput = ((OutputAdded)signingState.Events.Last()).Output.Value!.Satoshi;
-        var leftoverThreshold = signingState.Parameters.AllowedInputAmounts.Min.Satoshi * (inputCount / 10.0m);
+        var leftoverThreshold = signingState.Parameters.AllowedInputAmounts.Min.Satoshi * (inputCount / 5.0m);
         var estCoordinationFee = (long)(coordinationFeeRate * 100000000 * freshInputsEstimateBtc);
         var estLeftovers = Math.Max(0, coordinatorOutput - estCoordinationFee);
         if (BlockchainAnalyzer.StdDenoms.Contains(coordinatorOutput) || estLeftovers > leftoverThreshold)
