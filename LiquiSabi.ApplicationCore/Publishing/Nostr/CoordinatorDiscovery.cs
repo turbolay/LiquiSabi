@@ -11,23 +11,7 @@ public class CoordinatorDiscovery : BackgroundService
 
     private static List<string> Relays { get; } =
     [
-        "wss://relay.primal.net",
-        "wss://relay.damus.io",
-        "wss://relay.mostr.pub/",
-        "wss://nostr.fmt.wiz.biz",
-        "wss://nostr.wine/",
-        "wss://nos.lol",
-        "wss://nostr.land/",
-        "wss://offchain.pub/",
-        "wss://nostr.oxtr.dev/",
-        "wss://eden.nostr.land/",
-        "wss://nostr.oxtr.dev",
-        "wss://relay.bitcoinpark.com",
-        "wss://soloco.nl",
-        "wss://relay.nostr.bg/",
-        "wss://relay.snort.social/",
-        "wss://relay.nostr.band",
-        "wss://relay.noderunners.network"
+        "wss://relay.primal.net"
     ];
 
     private const int Kind = 15750;
@@ -61,7 +45,7 @@ public class CoordinatorDiscovery : BackgroundService
             }
         };
 
-        var cts = new CancellationTokenSource(20000);
+        var cts = new CancellationTokenSource(5000);
         await Client.ConnectAndWaitUntilConnected(cts.Token, cancellationToken);
 
         await foreach (var evt in Client.SubscribeForEvents([
