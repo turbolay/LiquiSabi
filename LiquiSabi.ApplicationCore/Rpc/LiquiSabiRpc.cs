@@ -34,7 +34,7 @@ public class LiquiSabiRpc : IJsonRpcService
             var dayStart = currentDate;
             var dayEnd = currentDate.AddDays(1);
         
-            var summary = GetSummary(dayStart, dayEnd, coordinatorEndpoint, true);
+            var summary = GetSummary(dayStart, dayEnd, coordinatorEndpoint);
             result.Add(new GraphEntry(
                 currentDate.ToString("dd/MM"),
                 summary
