@@ -70,6 +70,11 @@ public class LiquiSabiRpc : IJsonRpcService
             {
                 result.Add(new CoordinatorData(coordinator, 0, 0));
             }
+
+            if (coordinatorRounds.Any(x => x.CoordinationFeeRate > 0))
+            {
+                continue;
+            }
             
             var coordinatorFreshInputs = coordinatorRounds.Sum(x => x.FreshInputsEstimateBtc);
             result.Add(new CoordinatorData(coordinator, (coordinatorFreshInputs/totalFreshInputs) * 100, coordinatorRoundsCount));
