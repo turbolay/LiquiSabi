@@ -74,6 +74,7 @@ public class LiquiSabiRpc : IJsonRpcService
             if (coordinatorRoundsCount == 0)
             {
                 result.Add(new CoordinatorData(coordinator, 0, 0));
+                continue;
             }
 
             if (coordinatorRounds.Any(x => x.CoordinationFeeRate > 0))
