@@ -63,6 +63,11 @@ public class LiquiSabiRpc : IJsonRpcService
         var totalFreshInputs = roundsLastMonth.Sum(x => x.FreshInputsEstimateBtc);
         foreach (var coordinator in CoordinatorDiscovery.Coordinators)
         {
+            if (result.Any(x => x.Coordinator.Endpoint == coordinator.Endpoint))
+            {
+                continue;
+            }
+            
             var coordinatorRounds = roundsLastMonth.Where(x => x.CoordinatorEndpoint == coordinator.Endpoint).ToList();
             var coordinatorRoundsCount = coordinatorRounds.Count;
 
