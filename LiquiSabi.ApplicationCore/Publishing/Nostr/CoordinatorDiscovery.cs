@@ -20,16 +20,33 @@ public class CoordinatorDiscovery : BackgroundService
     private const string NetworkTagIdentifier = "network";
     private const string EndpointTagIdentifier = "endpoint";
     
-    private List<Coordinator> Coordinators { get; } = new();
+    public static List<Coordinator> Coordinators { get; } = new();
     private object Lock { get; } = new();
 
     private CompositeNostrClient? Client { get; set; }
     
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        Coordinators.Add(new Coordinator("","https://api.opencoordinator.org/", "", DateTimeOffset.UtcNow));
+        Coordinators.Add(
+            new Coordinator(
+                "",
+                "https://api.opencoordinator.org/",
+                DateTimeOffset.UtcNow, 
+                "OpenCoordinator", 
+                "OpenCoordinator is bitcoin coinjoin coordinator for Wasabi Wallet 2.x.\n\nIt is open to everyone, no country blocklists, no UTXO blocklists.\n\nOpenCoordinator is run by experienced team of anonymous freedom activists.",
+                "https://www.opencoordinator.org/", 
+                "21"));
         Logger.LogInfo("Listening to https://api.opencoordinator.org/");
-        Coordinators.Add(new Coordinator("","https://coinjoin.nl/", "", DateTimeOffset.UtcNow));
+        
+        Coordinators.Add(
+            new Coordinator(
+                "",
+                "https://coinjoin.nl/", 
+                DateTimeOffset.UtcNow,
+                "Noderunners Batched Transaction Coordinator", 
+                "WabiSabi Coordinator for Wasabi Wallet / BTCPay / Trezor",
+                "https://coinjoin.nl/",
+                "21"));
         Logger.LogInfo("Listening to https://coinjoin.nl/");
         
         Client = new CompositeNostrClient(Relays
@@ -96,11 +113,21 @@ public class CoordinatorDiscovery : BackgroundService
 
                 if (coordinator is null)
                 {
+                    var name =
+                        evt.Tags.FirstOrDefault(x => x.TagIdentifier == "name")?.Data.FirstOrDefault() ?? "";
+                    var readMore =
+                        evt.Tags.FirstOrDefault(x => x.TagIdentifier == "readmore")?.Data.FirstOrDefault() ?? "";
+                    var absolutemininputcount =
+                        evt.Tags.FirstOrDefault(x => x.TagIdentifier == "absolutemininputcount")?.Data.FirstOrDefault() ?? "21";
                     Coordinators.Add(new Coordinator(
                         evt.PublicKey,
                         endpoint,
+                        evt.CreatedAt ?? DateTimeOffset.UtcNow,
+                        name,
                         evt.Content ?? "",
-                        evt.CreatedAt ?? DateTimeOffset.UtcNow));
+                        readMore,
+                        absolutemininputcount
+                        ));
                     
                     Logger.LogInfo($"Listening to {endpoint}");
                 }
@@ -118,5 +145,5 @@ public class CoordinatorDiscovery : BackgroundService
         }
     }
 
-    public record Coordinator(string PubKey, string Endpoint, string Content, DateTimeOffset LastUpdate);
+    public record Coordinator(string PubKey, string Endpoint, DateTimeOffset LastUpdate, string Name, string Content, string ReadMore, string AbsoluteMinInputCount);
 }

@@ -1,5 +1,6 @@
 using System.Text;
 using LiquiSabi.ApplicationCore.Data;
+using LiquiSabi.ApplicationCore.Publishing.Nostr;
 using LiquiSabi.ApplicationCore.Utils.Nito.AsyncEx;
 using LiquiSabi.ApplicationCore.Utils.Rpc;
 using Newtonsoft.Json;
@@ -45,6 +46,38 @@ public class LiquiSabiRpc : IJsonRpcService
     
         return result;
     }
+    
+    public record CoordinatorData(CoordinatorDiscovery.Coordinator Coordinator, decimal FreshInputPercent, int NbRounds);
+    [JsonRpcMethod("coords")]
+    public List<CoordinatorData> GetCoordinators()
+    {
+        var result = new List<CoordinatorData>();
+        
+        DateTimeOffset until = DateTimeOffset.UtcNow.Date - TimeSpan.FromDays(1);
+        
+        DateTimeOffset minDate = new DateTimeOffset(2024, 10, 6, 0, 0, 0, TimeSpan.Zero);
+        DateTimeOffset since = until - TimeSpan.FromDays(30);
+        since = since < minDate ? minDate : since;
+        var roundsLastMonth = GetRounds(since, until).ToList();
+        
+        var totalFreshInputs = roundsLastMonth.Sum(x => x.FreshInputsEstimateBtc);
+        foreach (var coordinator in CoordinatorDiscovery.Coordinators)
+        {
+            var coordinatorRounds = roundsLastMonth.Where(x => x.CoordinatorEndpoint == coordinator.Endpoint).ToList();
+            var coordinatorRoundsCount = coordinatorRounds.Count;
+
+            if (coordinatorRoundsCount == 0)
+            {
+                result.Add(new CoordinatorData(coordinator, 0, 0));
+            }
+            
+            var coordinatorFreshInputs = coordinatorRounds.Sum(x => x.FreshInputsEstimateBtc);
+            result.Add(new CoordinatorData(coordinator, (coordinatorFreshInputs/totalFreshInputs) * 100, coordinatorRoundsCount));
+        }
+
+        return result;
+    }
+
     
     [JsonRpcMethod("average")]
     public CoinjoinStore.SavedRound? GetSummary(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null, bool sumWhenRelevant = false)
