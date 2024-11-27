@@ -85,6 +85,7 @@ public class LiquiSabiRpc : IJsonRpcService
             result.Add(new CoordinatorData(coordinator, (coordinatorFreshInputs/totalFreshInputs) * 100, coordinatorRoundsCount));
         }
 
+        result = result.OrderByDescending(x => x.FreshInputPercent).ToList();
         return result;
     }
 
