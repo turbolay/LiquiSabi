@@ -103,6 +103,11 @@ public class CoordinatorDiscovery : BackgroundService
                 {
                     continue;
                 }
+
+                if (endpoint.Contains("ginger"))
+                {
+                    continue;
+                }
                 
                 var coordinator = Coordinators.FirstOrDefault(x => x.Endpoint == endpoint);
                 if (coordinator is not null && evt.CreatedAt < coordinator.LastUpdate)
