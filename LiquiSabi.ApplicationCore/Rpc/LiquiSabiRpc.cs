@@ -62,7 +62,7 @@ public class LiquiSabiRpc : IJsonRpcService
         var roundsLastMonth = GetRounds(since, until).ToList();
         
         var totalFreshInputs = roundsLastMonth.Sum(x => x.FreshInputsEstimateBtc);
-        foreach (var coordinator in CoordinatorDiscovery.Coordinators)
+        foreach (var coordinator in CoordinatorDiscovery.Coordinators.Where(x => !x.Endpoint.Contains("ginger")))
         {
             if (result.Any(x => x.Coordinator.Endpoint == coordinator.Endpoint))
             {
