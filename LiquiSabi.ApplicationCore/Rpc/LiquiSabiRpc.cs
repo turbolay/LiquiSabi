@@ -13,7 +13,8 @@ public class LiquiSabiRpc : IJsonRpcService
     [JsonRpcMethod("rounds")]
     public IEnumerable<CoinjoinStore.SavedRound> GetRounds(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
     {
-        return CoinjoinStore.GetSavedRounds(since, until, coordinatorEndpoint);
+        var rounds = CoinjoinStore.GetSavedRounds(since, until, coordinatorEndpoint);
+        return rounds.Where(x => !x.CoordinatorEndpoint.Contains("ginger"));
     }
 
     public record GraphEntry(string Date, CoinjoinStore.SavedRound? Averages );
