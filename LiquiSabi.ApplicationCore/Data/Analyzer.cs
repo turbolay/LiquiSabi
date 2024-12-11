@@ -9,7 +9,7 @@ namespace LiquiSabi.ApplicationCore.Data;
 
 public class Analyzer : BackgroundService, IAnalyzer
 {
-    private static readonly bool FilterOutForProfitCoordinators = false;
+    private static readonly bool FilterOutForProfitCoordinators = true;
     public List<Analysis> CurrentAnalysis { get; set; } = new();
     private object Lock { get; } = new();
     private IRoundDataReaderService RoundDataReaderService { get; }
