@@ -52,14 +52,8 @@ public static class Program
 
     public static void ConfigureServices(IServiceCollection services)
     {
-        var repositoryPath = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("LiquiSabi", "Client")), "data.json");
         var config = new Config(LoadOrCreateConfigs(), Array.Empty<string>());
         var jsonRpcServerConfig = new JsonRpcServerConfiguration(true, config.JsonRpcUser, config.JsonRpcPassword, config.JsonRpcServerPrefixes);
-
-        services
-            .AddHttpClient<IHttpClient, ClearnetHttpClient>()
-            .ConfigureHttpClient(c => c.BaseAddress = config.GetCoordinatorUri());
-
         services
             .AddSingleton<IAnalyzer, Analyzer>()
             .AddSingleton<CoordinatorDiscovery>()

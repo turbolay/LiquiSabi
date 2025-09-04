@@ -24,4 +24,22 @@
       <PackageReference Include="xunit" Version="2.5.3" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Update="Utils\Microservices\Binaries\win64\Tor\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Utils\Microservices\Binaries\lin64\Tor\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Utils\Microservices\Binaries\osx64\Tor\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Utils\Tor\Geoip\geoip">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Utils\Tor\Geoip\geoip6">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    
 </Project>

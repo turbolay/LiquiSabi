@@ -1,7 +1,10 @@
 ﻿using LiquiSabi.ApplicationCore.Data;
 using LiquiSabi.ApplicationCore.Interfaces;
 using LiquiSabi.ApplicationCore.Publishing.Nostr;
+using LiquiSabi.ApplicationCore.Utils.Config;
+using LiquiSabi.ApplicationCore.Utils.Helpers;
 using LiquiSabi.ApplicationCore.Utils.Logging;
+using LiquiSabi.ApplicationCore.Utils.Tor;
 
 namespace LiquiSabi.ApplicationCore;
 
@@ -28,6 +31,8 @@ public class ApplicationCore
 
     public async Task Run(CancellationToken cancellationToken)
     {
+        await (new TorProcessManager(new TorSettings(Config.DataDir,  Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "TorDaemons"), terminateOnExit: true))).StartAsync(cancellationToken).ConfigureAwait(false);
+        
         DeploymentConfiguration.LoadConfiguration();
         await _coordinatorDiscovery.StartAsync(cancellationToken);
         await _roundStatusScraper.StartAsync(cancellationToken);

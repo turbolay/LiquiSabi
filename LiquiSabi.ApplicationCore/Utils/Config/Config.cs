@@ -94,6 +94,8 @@ public class Config
 		"datadir",
 		EnvironmentHelpers.GetDataDir(Path.Combine("LiquiSabi", "Client")),
 		Environment.GetCommandLineArgs()).EffectiveValue;
+	
+	public static string TorEndpoint { get; } = "";
 
 	public bool IsOverridden { get; }
 

@@ -30,7 +30,7 @@ public static class MicroserviceHelpers
 		platform ??= GetCurrentPlatform();
 
 		string fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-		string commonPartialPath = Path.Combine(fullBaseDirectory, "Microservices", "Binaries");
+		string commonPartialPath = Path.Combine(fullBaseDirectory, "Utils/Microservices", "Binaries");
 
 		string path;
 		if (platform == OSPlatform.Windows)
