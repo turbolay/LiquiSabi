@@ -38,17 +38,6 @@ public class CoordinatorDiscovery : BackgroundService
                 "21"));
         Logger.LogInfo("Listening to https://api.opencoordinator.org/");
         
-        Coordinators.Add(
-            new Coordinator(
-                "",
-                "https://coinjoin.nl/", 
-                DateTimeOffset.UtcNow,
-                "Noderunners Batched Transaction Coordinator", 
-                "WabiSabi Coordinator for Wasabi Wallet / BTCPay / Trezor",
-                "https://coinjoin.nl/",
-                "21"));
-        Logger.LogInfo("Listening to https://coinjoin.nl/");
-        
         Client = new CompositeNostrClient(Relays
             .Select(s => Uri.TryCreate(s, UriKind.Absolute, out var uri) ? uri : null)
             .Where(u => u is not null).ToArray()!);
