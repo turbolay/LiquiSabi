@@ -98,7 +98,10 @@ public class CoordinatorDiscovery : BackgroundService
                 {
                     continue;
                 }
-                
+                if (endpoint.Contains("example.com"))
+                {
+                    continue;
+                }
                 if (endpoint.Contains("wasabicoordinator")) 
                 {
                     continue;
