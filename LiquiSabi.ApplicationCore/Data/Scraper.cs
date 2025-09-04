@@ -1,3 +1,4 @@
+using System.Net;
 using System.Runtime.InteropServices.JavaScript;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
@@ -5,6 +6,8 @@ using LiquiSabi.ApplicationCore.Publishing.Nostr;
 using LiquiSabi.ApplicationCore.Utils.Bases;
 using LiquiSabi.ApplicationCore.Utils.Logging;
 using LiquiSabi.ApplicationCore.Utils.Tor.Http;
+using LiquiSabi.ApplicationCore.Utils.Tor.Socks5.Pool;
+using LiquiSabi.ApplicationCore.Utils.Tor.Socks5.Pool.Circuits;
 using LiquiSabi.ApplicationCore.Utils.WabiSabi.Client;
 using LiquiSabi.ApplicationCore.Utils.WabiSabi.Models;
 
@@ -29,10 +32,10 @@ public class Scraper(CoordinatorDiscovery coordinatorDiscovery)
         {
             if (!ApiClientPerCoordinator.TryGetValue(coordinator.Endpoint, out var apiClient))
             {
-                var httpClient = new HttpClient();
-                httpClient.BaseAddress = new Uri(coordinator.Endpoint);
-                var clearnetHttpClient = new ClearnetHttpClient(httpClient);
-                apiClient = new WabiSabiHttpApiClient(clearnetHttpClient);
+                
+                var torHttpPool = new TorHttpPool(new IPEndPoint(IPAddress.Loopback, 37150));
+                var torHttpClient = new TorHttpClient(new Uri(coordinator.Endpoint), torHttpPool, Mode.DefaultCircuit);
+                apiClient = new WabiSabiHttpApiClient(torHttpClient);
                 ApiClientPerCoordinator.Add(coordinator.Endpoint, apiClient);
             }
             
