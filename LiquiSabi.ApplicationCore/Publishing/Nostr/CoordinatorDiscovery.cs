@@ -11,7 +11,8 @@ public class CoordinatorDiscovery : BackgroundService
 
     private static List<string> Relays { get; } =
     [
-        "wss://relay.primal.net"
+        "wss://relay.damus.io",
+        
     ];
 
     private const int Kind = 15750;
@@ -30,13 +31,13 @@ public class CoordinatorDiscovery : BackgroundService
         Coordinators.Add(
             new Coordinator(
                 "",
-                "https://api.opencoordinator.org/",
+                "https://api.coinjoiner.com/",
                 DateTimeOffset.UtcNow, 
-                "OpenCoordinator", 
-                "OpenCoordinator is bitcoin coinjoin coordinator for Wasabi Wallet 2.x.\n\nIt is open to everyone, no country blocklists, no UTXO blocklists.\n\nOpenCoordinator is run by experienced team of anonymous freedom activists.",
-                "https://www.opencoordinator.org/", 
-                "21"));
-        Logger.LogInfo("Listening to https://api.opencoordinator.org/");
+                "Coinjoiner", 
+                "A WabiSabi coordinator which aims to improve Bitcoin privacy",
+                "https://www.coinjoiner.com/", 
+                "8"));
+        Logger.LogInfo("Listening to https://api.coinjoiner.com/");
         
         Client = new CompositeNostrClient(Relays
             .Select(s => Uri.TryCreate(s, UriKind.Absolute, out var uri) ? uri : null)
@@ -78,12 +79,7 @@ public class CoordinatorDiscovery : BackgroundService
             lock (Lock)
             {
                 var endpoint = evt.GetTaggedData(EndpointTagIdentifier).First();
-                if (!endpoint.StartsWith("http") || endpoint.Contains("localhost:") ||
-                    evt.CreatedAt < DateTimeOffset.UtcNow - TimeSpan.FromHours(2))
-                {
-                    continue;
-                }
-                if (endpoint.Contains("kruw") && !endpoint.Contains("coinjoin"))
+                if (!endpoint.StartsWith("http") || endpoint.Contains("localhost:"))
                 {
                     continue;
                 }
@@ -91,11 +87,6 @@ public class CoordinatorDiscovery : BackgroundService
                 {
                     continue;
                 }
-                if (endpoint.Contains("wasabicoordinator")) 
-                {
-                    continue;
-                }
-                
                 var coordinator = Coordinators.FirstOrDefault(x => x.Endpoint == endpoint);
                 if (coordinator is not null && evt.CreatedAt < coordinator.LastUpdate)
                 {

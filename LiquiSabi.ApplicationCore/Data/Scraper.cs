@@ -56,9 +56,17 @@ public class Scraper(CoordinatorDiscovery coordinatorDiscovery)
                     var status =
                         await apiClientAndCoordinator.ApiClient.GetStatusAsync(RoundStateRequest.Empty,
                             linkedCts.Token);
-                    var humanMonitor =
-                        await apiClientAndCoordinator.ApiClient.GetHumanMonitor(new HumanMonitorRequest(),
+                    HumanMonitorResponse humanMonitor;
+                    try
+                    {
+                        humanMonitor = await apiClientAndCoordinator.ApiClient.GetHumanMonitor(new HumanMonitorRequest(),
                             linkedCts.Token);
+                    }
+                    catch (Exception)
+                    {
+                        humanMonitor = new HumanMonitorResponse([]);
+                    }
+                        
                     // ReSharper restore AccessToDisposedClosure
                     var publicStatus = new PublicStatus(apiClientAndCoordinator.Coordinator, DateTimeOffset.UtcNow,
                         status, humanMonitor);
