@@ -31,6 +31,17 @@ public class CoordinatorDiscovery : BackgroundService
         Coordinators.Add(
             new Coordinator(
                 "",
+                "https://api.opencoordinator.org/",
+                DateTimeOffset.UtcNow, 
+                "OpenCoordinator", 
+                "OpenCoordinator is bitcoin coinjoin coordinator for Wasabi Wallet 2.x.\n\nIt is open to everyone, no country blocklists, no UTXO blocklists.\n\nOpenCoordinator is run by experienced team of anonymous freedom activists.",
+                "https://www.opencoordinator.org/", 
+                "21"));
+        Logger.LogInfo("Listening to https://api.coinjoiner.com/");
+        
+        Coordinators.Add(
+            new Coordinator(
+                "",
                 "https://api.coinjoiner.com/",
                 DateTimeOffset.UtcNow, 
                 "Coinjoiner", 
