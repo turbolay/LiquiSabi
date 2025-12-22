@@ -32,6 +32,7 @@ public class JsonRpcServer : BackgroundService
 	{
 		Listener.Start();
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
+		Logger.LogInfo($"JSON RPC Server is ready and listening on: {string.Join(", ", Config.Prefixes)}");
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)

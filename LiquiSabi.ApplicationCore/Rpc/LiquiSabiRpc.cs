@@ -14,7 +14,88 @@ public class LiquiSabiRpc : IJsonRpcService
     public IEnumerable<CoinjoinStore.SavedRound> GetRounds(DateTimeOffset? since = null, DateTimeOffset? until = null, IEnumerable<string>? coordinatorEndpoint = null)
     {
         var rounds = CoinjoinStore.GetSavedRounds(since, until, coordinatorEndpoint);
-        return rounds.Where(x => !x.CoordinatorEndpoint.Contains("ginger"));
+        return rounds;
+    }
+
+    public record FieldStatistics(
+        int MinInputCount,
+        int MaxInputCount,
+        int MinOutputCount,
+        int MaxOutputCount,
+        double MinAverageStandardOutputsAnonSet,
+        double MaxAverageStandardOutputsAnonSet);
+
+    public record PaginatedRoundsResult(
+        IEnumerable<CoinjoinStore.SavedRound> Rounds,
+        int TotalCount,
+        int Page,
+        int PageSize,
+        int TotalPages,
+        FieldStatistics? Statistics);
+
+    [JsonRpcMethod("rounds-paginated")]
+    public PaginatedRoundsResult GetRoundsPaginated(
+        DateTimeOffset? since = null,
+        DateTimeOffset? until = null,
+        IEnumerable<string>? coordinatorEndpoint = null,
+        string? orderBy = null,
+        bool? descending = null,
+        int? page = null,
+        int? pageSize = null,
+        string? searchTerm = null)
+    {
+        var actualPage = Math.Max(1, page ?? 1);
+        var actualPageSize = Math.Max(1, pageSize ?? 50);
+        var actualDescending = descending ?? true;
+        var offset = (actualPage - 1) * actualPageSize;
+
+        var (rounds, totalCount) = CoinjoinStore.GetSavedRoundsPaginated(
+            since,
+            until,
+            coordinatorEndpoint,
+            orderBy,
+            actualDescending,
+            actualPageSize,
+            offset,
+            searchTerm);
+
+        var roundsList = rounds.ToList();
+
+        var totalPages = (int)Math.Ceiling(totalCount / (double)actualPageSize);
+
+        // Calculate statistics from all rounds (not just current page) for color coding
+        var (allRounds, _) = CoinjoinStore.GetSavedRoundsPaginated(
+            since,
+            until,
+            coordinatorEndpoint,
+            null,
+            true,
+            int.MaxValue,
+            0,
+            null);
+
+        var allRoundsList = allRounds.ToList();
+
+        FieldStatistics? statistics = null;
+        if (allRoundsList.Any())
+        {
+            statistics = new FieldStatistics(
+                MinInputCount: allRoundsList.Min(r => r.InputCount),
+                MaxInputCount: allRoundsList.Max(r => r.InputCount),
+                MinOutputCount: allRoundsList.Min(r => r.OutputCount),
+                MaxOutputCount: allRoundsList.Max(r => r.OutputCount),
+                MinAverageStandardOutputsAnonSet: allRoundsList.Min(r => r.AverageStandardOutputsAnonSet),
+                MaxAverageStandardOutputsAnonSet: allRoundsList.Max(r => r.AverageStandardOutputsAnonSet)
+            );
+        }
+
+        return new PaginatedRoundsResult(
+            Rounds: roundsList,
+            TotalCount: totalCount,
+            Page: actualPage,
+            PageSize: actualPageSize,
+            TotalPages: totalPages,
+            Statistics: statistics);
     }
 
     public record GraphEntry(string Date, CoinjoinStore.SavedRound? Averages );

@@ -123,6 +123,22 @@ public static class CoinjoinStore
         }
     }
 
+    public static (IEnumerable<SavedRound> rounds, int totalCount) GetSavedRoundsPaginated(
+        DateTimeOffset? since = null,
+        DateTimeOffset? until = null,
+        IEnumerable<string>? coordinatorEndpoint = null,
+        string? orderBy = null,
+        bool descending = true,
+        int? limit = null,
+        int? offset = null,
+        string? searchTerm = null)
+    {
+        lock (Lock)
+        {
+            return Store.GetPaginated(since, until, coordinatorEndpoint, orderBy, descending, limit, offset, searchTerm);
+        }
+    }
+
     public static bool IsTxIdKnown(string txId)
     {
         lock (Lock)

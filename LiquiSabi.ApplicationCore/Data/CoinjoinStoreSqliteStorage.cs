@@ -161,6 +161,78 @@ namespace LiquiSabi.ApplicationCore.Data
             }
         }
 
+        public (IEnumerable<CoinjoinStore.SavedRound> rounds, int totalCount) GetPaginated(
+            DateTimeOffset? since = null,
+            DateTimeOffset? until = null,
+            IEnumerable<string>? coordinatorEndpoints = null,
+            string? orderBy = null,
+            bool descending = true,
+            int? limit = null,
+            int? offset = null,
+            string? searchTerm = null)
+        {
+            var allowedOrderColumns = new HashSet<string>
+            {
+                "RoundEndTime", "RoundStartTime", "CoordinatorEndpoint", "TxId", "InputCount",
+                "OutputCount", "AverageStandardOutputsAnonSet", "FreshInputsEstimateBtc",
+                "FinalMiningFeeRate", "CoordinationFeeRate", "TotalInputAmount"
+            };
+
+            var orderColumn = allowedOrderColumns.Contains(orderBy ?? "") ? orderBy : "RoundEndTime";
+            var orderDirection = descending ? "DESC" : "ASC";
+
+            // Get total count
+            int totalCount;
+            using (SqliteCommand countCommand = _connection.CreateCommand())
+            {
+                countCommand.CommandText = @"
+                    SELECT COUNT(*) FROM coinjoin_rounds
+                    WHERE ($Since IS NULL OR RoundEndTime >= $Since)
+                    AND ($Until IS NULL OR RoundEndTime <= $Until)
+                    AND ($CoordinatorEndpoints IS NULL OR CoordinatorEndpoint IN (SELECT value FROM json_each($CoordinatorEndpoints)))
+                    AND ($SearchTerm IS NULL OR TxId LIKE '%' || $SearchTerm || '%')
+                ";
+
+                countCommand.Parameters.AddWithValue("$Since", since?.ToUnixTimeSeconds() ?? (object)DBNull.Value);
+                countCommand.Parameters.AddWithValue("$Until", until?.ToUnixTimeSeconds() ?? (object)DBNull.Value);
+                countCommand.Parameters.AddWithValue("$CoordinatorEndpoints", coordinatorEndpoints != null ? JsonSerializer.Serialize(coordinatorEndpoints) : (object)DBNull.Value);
+                countCommand.Parameters.AddWithValue("$SearchTerm", searchTerm ?? (object)DBNull.Value);
+
+                totalCount = Convert.ToInt32(countCommand.ExecuteScalar());
+            }
+
+            // Get paginated data
+            var rounds = new List<CoinjoinStore.SavedRound>();
+            using (SqliteCommand command = _connection.CreateCommand())
+            {
+                command.CommandText = $@"
+                    SELECT * FROM coinjoin_rounds
+                    WHERE ($Since IS NULL OR RoundEndTime >= $Since)
+                    AND ($Until IS NULL OR RoundEndTime <= $Until)
+                    AND ($CoordinatorEndpoints IS NULL OR CoordinatorEndpoint IN (SELECT value FROM json_each($CoordinatorEndpoints)))
+                    AND ($SearchTerm IS NULL OR TxId LIKE '%' || $SearchTerm || '%')
+                    ORDER BY {orderColumn} {orderDirection}
+                    LIMIT $Limit OFFSET $Offset
+                ";
+
+                command.Parameters.AddWithValue("$Since", since?.ToUnixTimeSeconds() ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("$Until", until?.ToUnixTimeSeconds() ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("$CoordinatorEndpoints", coordinatorEndpoints != null ? JsonSerializer.Serialize(coordinatorEndpoints) : (object)DBNull.Value);
+                command.Parameters.AddWithValue("$SearchTerm", searchTerm ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("$Limit", limit ?? 100);
+                command.Parameters.AddWithValue("$Offset", offset ?? 0);
+
+                using SqliteDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    rounds.Add(ReadRow(reader));
+                }
+            }
+
+            return (rounds, totalCount);
+        }
+
         public bool IsTxIdKnown(string txId)
         {
             using SqliteCommand command = _connection.CreateCommand();
