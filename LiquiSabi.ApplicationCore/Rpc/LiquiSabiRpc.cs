@@ -206,6 +206,33 @@ public class LiquiSabiRpc : IJsonRpcService
             TotalLeftovers: sumWhenRelevant ? (long)rounds.Average(x => x.TotalLeftovers) : (long)rounds.Average(x => x.TotalLeftovers));
     }
 
+    public record DashboardData(
+        CoinjoinStore.SavedRound? Summary,
+        CoinjoinStore.SavedRound? Totals,
+        PaginatedRoundsResult PaginatedRounds,
+        List<GraphEntry> Graph,
+        List<CoordinatorData> Coordinators);
+
+    [JsonRpcMethod("dashboard")]
+    public DashboardData GetDashboard(
+        DateTimeOffset? since = null,
+        DateTimeOffset? until = null,
+        IEnumerable<string>? coordinatorEndpoint = null,
+        int? page = null,
+        int? pageSize = null,
+        string? orderBy = null,
+        bool? descending = null,
+        string? searchTerm = null)
+    {
+        var summary = GetSummary(since, until, coordinatorEndpoint, sumWhenRelevant: false);
+        var totals = GetSummary(since, until, coordinatorEndpoint, sumWhenRelevant: true);
+        var paginatedRounds = GetRoundsPaginated(since, until, coordinatorEndpoint, orderBy, descending, page, pageSize, searchTerm);
+        var graph = GetGraph(coordinatorEndpoint);
+        var coordinators = GetCoordinators();
+
+        return new DashboardData(summary, totals, paginatedRounds, graph, coordinators);
+    }
+
     private DateTime _lastRequestDonation = DateTime.MinValue;
     private AsyncLock _lock = new();
     [JsonRpcMethod("donation-address")]
